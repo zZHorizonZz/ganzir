@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      testing:
+        patterns: [ 'org.junit*:*', 'org.assertj:*', 'org.flywaydb:*' ]
+      jdbc-drivers:
+        patterns: [ 'org.xerial:*' ]
+      protobuf:
+        patterns: [ 'com.google.protobuf:*' ]
+      build-plugins:
+        patterns: [ 'org.apache.maven.plugins:*', 'com.diffplug.spotless:*', 'io.github.ascopes:*' ]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

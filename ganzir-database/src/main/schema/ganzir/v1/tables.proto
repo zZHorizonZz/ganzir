@@ -1,0 +1,214 @@
+syntax = "proto3";
+
+package ganzir.v1;
+
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = false;
+option java_outer_classname = "Tables";
+option java_package = "dev.horizon.ganzir.database.schema.v1";
+
+// A declared model, by version. The last version applies to every change.
+message Model {
+  option (leadseal.v1.table) = { name: "ganzir_model" };
+
+  // 1 for the first model, and one more for each after it.
+  int64 version = 1 [(leadseal.v1.column).primary_key = true];
+
+  ModelDefinition definition = 2;
+
+  string create_time = 3 [(leadseal.v1.column).timestamp = {}];
+}
+
+// The types of a model, stored as JSON in its row.
+message ModelDefinition {
+  repeated TypeDefinition types = 1;
+}
+
+message TypeDefinition {
+  string name = 1;
+
+  // GLOBAL or PARENT.
+  string scope = 2;
+
+  int64 retention_millis = 3;
+
+  repeated RuleDefinition rules = 4;
+}
+
+message RuleDefinition {
+  oneof rule {
+    bool root = 1;
+    TypeList parents = 2;
+    TypeList children = 3;
+    int32 depth = 4;
+  }
+}
+
+message TypeList {
+  repeated string types = 1;
+}
+
+// A node. Its name is unique among the nodes of its type with the same scope.
+message Node {
+  option (leadseal.v1.table) = {
+    name: "ganzir_node"
+    index: [
+      { fields: ["type", "scope", "name"] unique: true },
+      { fields: ["path"] },
+      { fields: ["parent_id"] }
+    ]
+  };
+
+  string id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string type = 2 [(leadseal.v1.column).text = {
+    length: 63
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  string name = 3 [(leadseal.v1.column).text = {
+    length: 255
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // None for a root.
+  optional string parent_id = 4 [(leadseal.v1.column) = {
+    foreign_key: { message: "ganzir.v1.Node" on_delete: ACTION_RESTRICT }
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // Empty for a type whose names are unique globally, and for a root; the id of the parent otherwise.
+  string scope = 5 [(leadseal.v1.column).text = {
+    length: 32
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The ids from the root to this node, such as /a/b/c/. Its descendants are the nodes whose path starts with it.
+  string path = 6 [(leadseal.v1.column).text = {
+    length: 850
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // 0 for a root, and one more for each level below it.
+  int32 depth = 7;
+
+  string display_name = 8 [(leadseal.v1.column).text = { length: 255 }];
+
+  map<string, string> labels = 9;
+
+  // Each label as ,hex(key)=hex(value), so that a filter on a label is a LIKE on this column.
+  string label_index = 10;
+
+  map<string, string> annotations = 11;
+
+  // ACTIVE, DELETING or DELETED.
+  string state = 12 [(leadseal.v1.column).text = { length: 16 }];
+
+  int64 revision = 13;
+
+  string create_time = 14 [(leadseal.v1.column).timestamp = {}];
+
+  string update_time = 15 [(leadseal.v1.column).timestamp = {}];
+
+  optional string delete_time = 16 [(leadseal.v1.column).timestamp = {}];
+
+  // When a deleted node may be purged: its delete time and the retention of its type.
+  optional string purge_time = 17 [(leadseal.v1.column).timestamp = {}];
+
+  repeated Lien liens = 18 [(leadseal.v1.column).ignore = true];
+
+  repeated Finalizer finalizers = 19 [(leadseal.v1.column).ignore = true];
+}
+
+// A lien on a node, which stops it from being deleted.
+message Lien {
+  option (leadseal.v1.table) = { name: "ganzir_lien" };
+
+  string node_id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    foreign_key: { message: "ganzir.v1.Node" on_delete: ACTION_CASCADE }
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string id = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: { length: 32 }
+  }];
+
+  string origin = 3 [(leadseal.v1.column).text = { length: 255 }];
+
+  string reason = 4 [(leadseal.v1.column).text = { length: 1024 }];
+
+  string create_time = 5 [(leadseal.v1.column).timestamp = {}];
+}
+
+// A finalizer of a node, which keeps it deleting after a delete until it is removed.
+message Finalizer {
+  option (leadseal.v1.table) = { name: "ganzir_finalizer" };
+
+  string node_id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    foreign_key: { message: "ganzir.v1.Node" on_delete: ACTION_CASCADE }
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string name = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 255
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+}
