@@ -34,9 +34,9 @@ public interface Hierarchy {
    * Creates a root node.
    *
    * <p>
-   * The future fails with {@code InvalidArgumentException} if the model does not declare the type, with
-   * {@code FailedPreconditionException} and the reason {@link Reason#RULE} if the type cannot be a root, and with
-   * {@code AlreadyExistsException} if a node of the type has the name.
+   * The future fails with {@code InvalidArgumentException} if the model does not declare the type or the name is not
+   * valid, with {@code FailedPreconditionException} and the reason {@link Reason#RULE} if the type cannot be a root,
+   * and with {@code AlreadyExistsException} if a node of the type has the name.
    */
   Future<Node> create(String type, String name, Metadata metadata);
 
@@ -58,7 +58,7 @@ public interface Hierarchy {
   Future<Page<Node>> roots(PageRequest request);
 
   /**
-   * Purges every deleted node whose retention has ended, with its holds and finalizers. A node is purged only after
+   * Purges every deleted node whose retention has ended. A node is purged only after
    * its children are. Call it on a schedule, such as once an hour.
    *
    * @return the number of nodes purged

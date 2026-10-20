@@ -13,7 +13,7 @@
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         "ganzir-api/pom.xml",
-        "ganzir/pom.xml",
+        "ganzir-database/pom.xml",
         "README.md"
       ]
     }

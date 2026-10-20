@@ -66,27 +66,32 @@ Every node has these fields:
 | `id`                                     | an id that Ganzir generates, and that never changes                     |
 | `type`, `name`                           | the type of the node, and its name, unique within the scope of its type |
 | `parent`                                 | the id of the parent node, or nothing for a root                        |
-| `displayName`                            | a name for people, without rules                                        |
-| `labels`                                 | keys and values that you can filter by                                  |
-| `annotations`                            | keys and values that you cannot filter by, for tools and notes          |
+| `metadata`                               | the display name, the labels and the annotations                        |
 | `state`                                  | `ACTIVE`, `DELETING` or `DELETED`                                       |
 | `revision`                               | the revision of the node, which every change increments                 |
 | `createTime`, `updateTime`, `deleteTime` | when the node was created, last changed and deleted                     |
+| `liens`, `finalizers`                    | the liens and the finalizers of the node                                |
+
+The metadata of a node has a display name for people, labels that filters can select by, and annotations that they
+cannot, for tools and notes.
 
 `children`, `descendants` and `roots` return pages, ordered by name. They take a filter in the syntax of
 [AIP-160](https://google.aip.dev/160), over `type`, `state`, `name`, `display_name` and `labels`, such as
 `labels.team = "billing" AND type = project`, or `labels.env:*` for the nodes that have the label at all.
 
-Names and labels have these limits:
+Names, metadata and the hierarchy have these limits:
 
-- A name has 1 to 255 letters, digits, `.`, `_`, `~` and `-`.
+- A name has 1 to 255 characters.
+- A display name has at most 255 characters.
 - A label key has 1 to 63 lowercase letters, digits, `_` and `-`, and starts with a letter.
 - A label value has 0 to 63 lowercase letters, digits, `_` and `-`.
 - A node has at most 64 labels.
+- The keys and values of the annotations of a node have at most 256 KiB together.
 - A hierarchy is at most 25 levels deep.
 
 The limits of labels are the
 [requirements for labels of Google Cloud](https://docs.cloud.google.com/resource-manager/docs/labels-overview#requirements).
+`Metadata` checks its own limits when you create it, and fails with `InvalidArgumentException`.
 
 ## Moves
 
@@ -94,21 +99,33 @@ The limits of labels are the
 the node's type and of the new parent's type, and refuses a move that would place a node inside itself. It updates
 the ancestors of the whole subtree in one transaction.
 
-## Holds and finalizers
+## Liens and finalizers
 
-A hold stops a delete. It is a lien: while a node has a hold, `delete` fails. For example, a billing service holds a
-project while it is billed, and releases the hold when the billing ends
-([Cloud Resource Manager, project liens](https://docs.cloud.google.com/resource-manager/docs/project-liens)).
+A lien stops a delete. While a node has a lien, `delete` fails. For example, a billing service places a lien on a
+project while it is billed, and removes the lien when the billing ends
+([Cloud Resource Manager, project liens](https://docs.cloud.google.com/resource-manager/docs/project-liens)):
 
-A finalizer delays a purge. When a node with finalizers is deleted, its state becomes `DELETING`, and it is purged
-only after each finalizer is removed. For example, a service that stores data inside a project adds a finalizer,
-deletes its data when the project is deleted, and then removes its finalizer
-([Kubernetes, finalizers](https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/)).
+```java
+Lien lien = ledger.lien("billing", "An active subscription is billed to this project.").await(10, TimeUnit.SECONDS);
+lien.remove().await(10, TimeUnit.SECONDS);
+```
+
+A finalizer keeps a deleted node `DELETING` until the finalizer is removed. For example, a service that stores data
+inside a project adds a finalizer, deletes its data when the project is deleted, and then removes its finalizer
+([Kubernetes, finalizers](https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/)):
+
+```java
+Finalizer finalizer = ledger.finalizer("storage.example.com/buckets").await(10, TimeUnit.SECONDS);
+finalizer.remove().await(10, TimeUnit.SECONDS);
+```
+
+A finalizer is identified by its name, so adding a finalizer that the node has returns that finalizer. Each lien is
+new, with an id of its own.
 
 ## Deletion
 
-`delete(expected)` fails while the node has children or holds. Otherwise the node becomes `DELETED`, or `DELETING`
-while it has finalizers. A deleted node keeps its name, and `restore(expected)` makes it `ACTIVE` again.
+`delete(expected)` fails while the node has children that are not deleted, or liens. Otherwise the node becomes
+`DELETED`, or `DELETING` while it has finalizers. A deleted node keeps its name, and `restore(expected)` makes it `ACTIVE` again.
 
 `purge()` removes every deleted node whose retention has ended, after its children. Call it on a schedule:
 
@@ -133,16 +150,16 @@ Create the tables with the migrations under `ganzir/migration` in the JAR, with 
 ```xml
 <dependency>
   <groupId>dev.horizon</groupId>
-  <artifactId>ganzir</artifactId>
+  <artifactId>ganzir-database</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
 
-| Artifact     | Java module              | Contents                                              |
-| ------------ | ------------------------ | ----------------------------------------------------- |
-| `ganzir-api` | `dev.horizon.ganzir.api` | the interfaces of the hierarchy, the model and nodes  |
-| `ganzir`     | `dev.horizon.ganzir`     | `DatabaseHierarchy`, and the migrations of its tables |
+| Artifact          | Java module                   | Contents                                              |
+| ----------------- | ----------------------------- | ----------------------------------------------------- |
+| `ganzir-api`      | `dev.horizon.ganzir.api`      | the interfaces of the hierarchy, the model and nodes  |
+| `ganzir-database` | `dev.horizon.ganzir.database` | `DatabaseHierarchy`, and the migrations of its tables |
 
 Failures are the problem exceptions of [Pyrite](https://github.com/zZHorizonZz/pyrite)'s `pyrite-common`, and pages are
 [aquery](https://github.com/zZHorizonZz/aquery)'s.

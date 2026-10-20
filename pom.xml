@@ -35,7 +35,7 @@
   </distributionManagement>
   <modules>
     <module>ganzir-api</module>
-    <module>ganzir</module>
+    <module>ganzir-database</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
