@@ -151,7 +151,7 @@ Create the tables with the migrations under `ganzir/migration` in the JAR, with 
 <dependency>
   <groupId>dev.horizon</groupId>
   <artifactId>ganzir-database</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
