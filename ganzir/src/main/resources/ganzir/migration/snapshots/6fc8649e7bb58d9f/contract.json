@@ -1,0 +1,478 @@
+{
+  "schemaVersion" : "1",
+  "storage" : {
+    "namespaces" : [ {
+      "tables" : [ {
+        "id" : "ganzir.Model",
+        "name" : "ganzir_model",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "version",
+          "type" : {
+            "kind" : "integer",
+            "size" : "INT64"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "1 for the first model, and one more for each after it."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "definition",
+          "type" : {
+            "kind" : "json"
+          }
+        }, {
+          "id" : "3",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_ganzir_model",
+          "columns" : [ "version" ]
+        }, {
+          "kind" : "comment",
+          "text" : "A declared model, by version. The last version applies to every change."
+        } ]
+      }, {
+        "id" : "ganzir.Node",
+        "name" : "ganzir_node",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "type",
+          "type" : {
+            "kind" : "text",
+            "length" : 63
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "name",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "parent_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "None for a root."
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "scope",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "Empty for a type whose names are unique globally, and for a root; the id of the parent otherwise."
+          } ]
+        }, {
+          "id" : "6",
+          "name" : "path",
+          "type" : {
+            "kind" : "text",
+            "length" : 850
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The ids from the root to this node, such as /a/b/c/. Its descendants are the nodes whose path starts with it."
+          } ]
+        }, {
+          "id" : "7",
+          "name" : "depth",
+          "type" : {
+            "kind" : "integer",
+            "size" : "INT32"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "0 for a root, and one more for each level below it."
+          } ]
+        }, {
+          "id" : "8",
+          "name" : "display_name",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "9",
+          "name" : "labels",
+          "type" : {
+            "kind" : "json"
+          }
+        }, {
+          "id" : "10",
+          "name" : "label_index",
+          "type" : {
+            "kind" : "text"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "Each label as ,hex(key)=hex(value), so that a filter on a label is a LIKE on this column."
+          } ]
+        }, {
+          "id" : "11",
+          "name" : "annotations",
+          "type" : {
+            "kind" : "json"
+          }
+        }, {
+          "id" : "12",
+          "name" : "state",
+          "type" : {
+            "kind" : "text",
+            "length" : 16
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "ACTIVE, DELETING or DELETED."
+          } ]
+        }, {
+          "id" : "13",
+          "name" : "revision",
+          "type" : {
+            "kind" : "integer",
+            "size" : "INT64"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "14",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "15",
+          "name" : "update_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "16",
+          "name" : "delete_time",
+          "type" : {
+            "kind" : "timestamp"
+          }
+        }, {
+          "id" : "17",
+          "name" : "purge_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "comment",
+            "text" : "When a deleted node may be purged: its delete time and the retention of its type."
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_ganzir_node",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "foreign_key",
+          "name" : "fk_ganzir_node_parent_id",
+          "columns" : [ "parent_id" ],
+          "table" : {
+            "name" : "ganzir_node"
+          },
+          "referencedColumns" : [ "id" ],
+          "onDelete" : "RESTRICT",
+          "onUpdate" : "NO_ACTION"
+        }, {
+          "kind" : "index",
+          "name" : "ux_ganzir_node_type_scope_name",
+          "columns" : [ "type", "scope", "name" ],
+          "unique" : true
+        }, {
+          "kind" : "index",
+          "name" : "ix_ganzir_node_path",
+          "columns" : [ "path" ],
+          "unique" : false
+        }, {
+          "kind" : "index",
+          "name" : "ix_ganzir_node_parent_id",
+          "columns" : [ "parent_id" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "A node. Its name is unique among the nodes of its type with the same scope."
+        } ]
+      }, {
+        "id" : "ganzir.Hold",
+        "name" : "ganzir_hold",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "node_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "origin",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "reason",
+          "type" : {
+            "kind" : "text",
+            "length" : 1024
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_ganzir_hold",
+          "columns" : [ "node_id", "id" ]
+        }, {
+          "kind" : "foreign_key",
+          "name" : "fk_ganzir_hold_node_id",
+          "columns" : [ "node_id" ],
+          "table" : {
+            "name" : "ganzir_node"
+          },
+          "referencedColumns" : [ "id" ],
+          "onDelete" : "CASCADE",
+          "onUpdate" : "NO_ACTION"
+        }, {
+          "kind" : "comment",
+          "text" : "A hold on a node, which stops it from being deleted."
+        } ]
+      }, {
+        "id" : "ganzir.Finalizer",
+        "name" : "ganzir_finalizer",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "node_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "name",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_ganzir_finalizer",
+          "columns" : [ "node_id", "name" ]
+        }, {
+          "kind" : "foreign_key",
+          "name" : "fk_ganzir_finalizer_node_id",
+          "columns" : [ "node_id" ],
+          "table" : {
+            "name" : "ganzir_node"
+          },
+          "referencedColumns" : [ "id" ],
+          "onDelete" : "CASCADE",
+          "onUpdate" : "NO_ACTION"
+        }, {
+          "kind" : "comment",
+          "text" : "A finalizer of a node, which delays its purge after a delete."
+        } ]
+      } ]
+    } ]
+  },
+  "storageHash" : "6fc8649e7bb58d9f"
+}
