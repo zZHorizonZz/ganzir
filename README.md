@@ -59,7 +59,7 @@ Each model that you declare is stored as a new version. Existing nodes do not ch
 
 ## Nodes
 
-Every node has the same metadata, as every Kubernetes object does:
+Every node has these fields:
 
 | Field                                    | Description                                                             |
 | ---------------------------------------- | ----------------------------------------------------------------------- |
@@ -77,9 +77,16 @@ Every node has the same metadata, as every Kubernetes object does:
 [AIP-160](https://google.aip.dev/160), over `type`, `state`, `name`, `display_name` and `labels`, such as
 `labels.team = "billing" AND type = project`, or `labels.env:*` for the nodes that have the label at all.
 
-A name has 1 to 255 letters, digits, `.`, `_`, `~` and `-`. A label key has 1 to 63 lowercase letters, digits, `_` and
-`-`, and starts with a letter; a label value has up to 63 of them; a node has at most 64 labels, as Google Cloud
-labels do. A hierarchy is at most 25 levels deep.
+Names and labels have these limits:
+
+- A name has 1 to 255 letters, digits, `.`, `_`, `~` and `-`.
+- A label key has 1 to 63 lowercase letters, digits, `_` and `-`, and starts with a letter.
+- A label value has 0 to 63 lowercase letters, digits, `_` and `-`.
+- A node has at most 64 labels.
+- A hierarchy is at most 25 levels deep.
+
+The limits of labels are the
+[requirements for labels of Google Cloud](https://docs.cloud.google.com/resource-manager/docs/labels-overview#requirements).
 
 ## Moves
 
