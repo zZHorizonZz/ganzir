@@ -9,8 +9,6 @@ import dev.horizon.cinder.Database;
 import dev.horizon.cinder.DuplicateKeyException;
 import dev.horizon.ganzir.Metadata;
 import dev.horizon.ganzir.Node;
-import dev.horizon.ganzir.NodeType;
-import dev.horizon.ganzir.Scope;
 import dev.horizon.ganzir.State;
 import dev.horizon.ganzir.database.schema.v1.Tables;
 import dev.horizon.pyrite.common.AbortedException;
@@ -49,15 +47,26 @@ record NodeBackend(Database database, ModelBackend models, LienBackend liens, Fi
         .map(found -> found.<Node> map(row -> new DatabaseNode(this, row)));
   }
 
-  Future<DatabaseNode> lock(String id) {
+  /**
+   * Locks a node for the transaction. Its liens and finalizers are read after the lock, so that they include every
+   * one that a transaction which held the lock before committed.
+   */
+  Future<LockedNode> lock(String id) {
     return find(Filter.eq("id", id)).lock(LockMode.UPDATE).first()
         .map(found -> found.orElseThrow(() -> new NotFoundException("node", id)))
         .compose(row -> liens.find(Filter.eq("node_id", id)).list()
             .compose(placed -> finalizers.find(Filter.eq("node_id", id)).list()
-                .map(added -> new DatabaseNode(this, row.toBuilder()
-                    .addAllLiens(placed)
-                    .addAllFinalizers(added)
-                    .build()))));
+                .map(added -> new LockedNode(row.toBuilder().addAllLiens(placed).addAllFinalizers(added)))));
+  }
+
+  /**
+   * Locks a node for the transaction, if it still has the revision that the caller expects.
+   */
+  Future<LockedNode> lock(String id, Revision expected) {
+    return lock(id).map(node -> {
+      node.expect(expected);
+      return node;
+    });
   }
 
   Future<Page<Node>> page(Filter base, PageRequest request) {
@@ -90,65 +99,69 @@ record NodeBackend(Database database, ModelBackend models, LienBackend liens, Fi
             .toList());
   }
 
-  Future<List<DatabaseNode>> subtree(DatabaseNode node) {
-    return find(Filter.and(Filter.startsWith("path", node.path().value()), Filter.ne("id", node.id()))).list()
-        .map(rows -> rows.stream().map(row -> new DatabaseNode(this, row)).toList());
+  /**
+   * Reads the nodes below a node, with only the fields that a move changes.
+   */
+  Future<List<Tables.Node>> subtree(LockedNode node) {
+    return find(Filter.and(Filter.startsWith("path", node.path().value()), Filter.ne("id", node.id())))
+        .mask("id,type,path,depth")
+        .list();
   }
 
-  Future<Boolean> hasActiveChildren(DatabaseNode node) {
+  Future<Boolean> hasActiveChildren(LockedNode node) {
     return find(Filter.and(Filter.eq("parent_id", node.id()), Filter.ne("state", State.DELETED.name()))).exists();
   }
 
-  Future<Node> insert(NodeType type, String name, Metadata metadata, NodePath parent) {
+  /**
+   * Starts the row of an active node, which is a root until a parent adopts it.
+   */
+  Tables.Node.Builder newNode(String type, String name, Metadata metadata) {
     String id = UUID.randomUUID().toString().replace("-", "");
     String now = clock.instant().toString();
-    List<String> above = parent.ids();
-    Tables.Node.Builder row = METADATA.write(Tables.Node.newBuilder()
+    return METADATA.write(Tables.Node.newBuilder()
         .setId(id)
-        .setType(type.name())
+        .setType(type)
         .setName(name)
-        .setScope(type.scope() == Scope.PARENT && !above.isEmpty() ? above.getLast() : "")
-        .setPath(parent.child(id).value())
-        .setDepth(above.size())
+        .setPath(NodePath.TOP.child(id).value())
         .setState(State.ACTIVE.name())
         .setRevision(1)
         .setCreateTime(now)
         .setUpdateTime(now), metadata);
-    if (!above.isEmpty()) {
-      row.setParentId(above.getLast());
-    }
-    return insert(row.build())
-        .recover(failure -> Future.failedFuture(failure instanceof DuplicateKeyException
-            ? new AlreadyExistsException("node", name)
-            : failure))
-        .compose(inserted -> node(id));
   }
 
-  Future<Node> save(Tables.Node row, Revision expected) {
-    Tables.Node changed = row.toBuilder()
-        .setRevision(expected.value() + 1)
-        .setUpdateTime(clock.instant().toString())
-        .build();
-    return update()
-        .where(Filter.and(Filter.eq("id", row.getId()), Filter.eq("revision", expected.value())))
-        .set(changed, CHANGEABLE)
-        .execute()
+  Future<Node> insert(Tables.Node.Builder row) {
+    return insert(row.build())
         .recover(failure -> Future.failedFuture(failure instanceof DuplicateKeyException
             ? new AlreadyExistsException("node", row.getName())
             : failure))
+        .map(inserted -> new DatabaseNode(this, inserted));
+  }
+
+  Future<Node> save(LockedNode node) {
+    Revision locked = node.revision();
+    Tables.Node saved = node.row().clone()
+        .setRevision(locked.value() + 1)
+        .setUpdateTime(clock.instant().toString())
+        .build();
+    return update()
+        .where(Filter.and(Filter.eq("id", saved.getId()), Filter.eq("revision", locked.value())))
+        .set(saved, CHANGEABLE)
+        .execute()
+        .recover(failure -> Future.failedFuture(failure instanceof DuplicateKeyException
+            ? new AlreadyExistsException("node", saved.getName())
+            : failure))
         .compose(updated -> updated == 1
-            ? node(row.getId())
-            : existsById(row.getId()).compose(exists -> Future.failedFuture(exists
-                ? new AbortedException("node", row.getId(), expected)
-                : new NotFoundException("node", row.getId()))));
+            ? Future.succeededFuture(new DatabaseNode(this, saved))
+            : existsById(saved.getId()).compose(exists -> Future.failedFuture(exists
+                ? new AbortedException("node", saved.getId(), locked)
+                : new NotFoundException("node", saved.getId()))));
   }
 
   Future<Void> savePaths(List<Tables.Node> rows) {
-    Future<Long> saved = Future.succeededFuture(0L);
-    for (Tables.Node row : rows) {
-      saved = saved.compose(count -> update().where(Filter.eq("id", row.getId())).set(row, "path,depth").execute());
-    }
-    return saved.mapEmpty();
+    return Future.all(rows.stream()
+        .map(row -> update().where(Filter.eq("id", row.getId())).set(row, "path,depth").execute())
+        .toList())
+        .mapEmpty();
   }
 
   Future<Long> purge() {
@@ -157,6 +170,7 @@ record NodeBackend(Database database, ModelBackend models, LienBackend liens, Fi
 
   private Future<Long> purged(long count) {
     return find(Filter.and(Filter.eq("state", State.DELETED.name()), Filter.lte("purge_time", clock.instant())))
+        .mask("id")
         .limit(PURGED_AT_ONCE)
         .list()
         .compose(candidates -> {

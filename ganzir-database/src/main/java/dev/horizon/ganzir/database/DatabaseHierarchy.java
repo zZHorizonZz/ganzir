@@ -27,8 +27,9 @@ public final class DatabaseHierarchy implements Hierarchy {
     try {
       database.model(Tables.Node.class);
     } catch (IllegalArgumentException unknown) {
-      throw new IllegalArgumentException("The database cannot store Ganzir's tables, which are protobuf messages; build "
-          + "it with .extension(new ProtobufExtension())", unknown);
+      throw new IllegalArgumentException(
+          "The database cannot store Ganzir's tables, which are protobuf messages; build it with .extension(new ProtobufExtension())",
+          unknown);
     }
     this.models = new ModelBackend(database);
     this.nodes = new NodeBackend(database, models, new LienBackend(database), new FinalizerBackend(database),
@@ -37,8 +38,7 @@ public final class DatabaseHierarchy implements Hierarchy {
 
   @Override
   public Future<Void> declare(Model model) {
-    return Future.succeededFuture(model).map(Schema::new)
-        .compose(schema -> models.declare(schema, nodes.clock().instant()));
+    return Future.succeededFuture(model).map(Schema::new).compose(schema -> models.declare(schema, nodes.clock().instant()));
   }
 
   @Override
@@ -53,7 +53,10 @@ public final class DatabaseHierarchy implements Hierarchy {
 
   @Override
   public Future<Node> create(String type, String name, Metadata metadata) {
-    return models.schema().compose(schema -> nodes.insert(schema.root(type, name), name, metadata, NodePath.TOP));
+    return models.schema().compose(schema -> {
+      schema.root(type, name);
+      return nodes.insert(nodes.newNode(type, name, metadata));
+    });
   }
 
   @Override

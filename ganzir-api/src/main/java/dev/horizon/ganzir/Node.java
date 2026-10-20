@@ -4,9 +4,7 @@ import dev.horizon.aquery.aip158.Page;
 import dev.horizon.aquery.aip158.PageRequest;
 import dev.horizon.pyrite.common.Revision;
 import io.vertx.core.Future;
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A container in a hierarchy. A node holds the values that were current when it was read. Its methods read it again
@@ -15,42 +13,7 @@ import java.util.Optional;
  * <p>
  * A change that takes {@code expected} fails with {@code AbortedException} if the node changed after that revision.
  */
-public interface Node {
-
-  /**
-   * Returns the id that Ganzir generated for the node. It never changes.
-   */
-  String id();
-
-  String type();
-
-  /**
-   * Returns the name of the node, which is unique within the {@link Scope} of its type.
-   */
-  String name();
-
-  /**
-   * Returns the id of the parent, or nothing for a root.
-   */
-  Optional<String> parent();
-
-  /**
-   * Returns the display name, the labels and the annotations of the node.
-   */
-  Metadata metadata();
-
-  State state();
-
-  Revision revision();
-
-  Instant createTime();
-
-  Instant updateTime();
-
-  /**
-   * Returns when the node was deleted, or nothing if it is active.
-   */
-  Optional<Instant> deleteTime();
+public interface Node extends NodeData {
 
   /**
    * Returns the liens on the node, which stop it from being deleted.

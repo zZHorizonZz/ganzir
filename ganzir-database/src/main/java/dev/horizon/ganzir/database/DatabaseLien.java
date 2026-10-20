@@ -8,11 +8,11 @@ import java.time.Instant;
 
 final class DatabaseLien implements Lien {
 
-  private final NodeBackend nodes;
+  private final NodeBackend backend;
   private final Tables.Lien row;
 
-  DatabaseLien(NodeBackend nodes, Tables.Lien row) {
-    this.nodes = nodes;
+  DatabaseLien(NodeBackend backend, Tables.Lien row) {
+    this.backend = backend;
     this.row = row;
   }
 
@@ -38,12 +38,15 @@ final class DatabaseLien implements Lien {
 
   @Override
   public Future<Void> remove() {
-    return nodes.database().transaction(transaction -> nodes.lock(row.getNodeId())
-        .compose(node -> nodes.liens().delete()
-            .where(Filter.and(Filter.eq("node_id", row.getNodeId()), Filter.eq("id", row.getId())))
-            .execute()
-            .compose(removed -> removed == 0
-                ? Future.<Void> succeededFuture()
-                : nodes.save(node.touched(), node.revision()).mapEmpty())));
+    return backend.database().transaction(_ -> backend.lock(row.getNodeId()).compose(node -> {
+      if (!node.removeLien(row.getId())) {
+        return Future.succeededFuture();
+      }
+      return backend.liens().delete()
+          .where(Filter.and(Filter.eq("node_id", row.getNodeId()), Filter.eq("id", row.getId())))
+          .execute()
+          .compose(_ -> backend.save(node))
+          .mapEmpty();
+    }));
   }
 }

@@ -1,6 +1,7 @@
 package dev.horizon.ganzir.database;
 
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageOrBuilder;
 
 /**
  * Converts one value of the API to the columns of a protobuf row, and back. Only the mapper knows how the value is
@@ -10,7 +11,7 @@ import com.google.protobuf.Message;
  * @param <M> the row
  * @param <B> the builder of the row
  */
-interface ProtobufMapper<T, M extends Message, B extends Message.Builder> {
+interface ProtobufMapper<T, M extends MessageOrBuilder, B extends Message.Builder> {
 
   /**
    * Reads the value from the columns of the row.

@@ -3,12 +3,12 @@ package dev.horizon.ganzir.database;
 import dev.horizon.ganzir.Metadata;
 import dev.horizon.ganzir.database.schema.v1.Tables;
 
-final class MetadataMapper implements ProtobufMapper<Metadata, Tables.Node, Tables.Node.Builder> {
+final class MetadataMapper implements ProtobufMapper<Metadata, Tables.NodeOrBuilder, Tables.Node.Builder> {
 
   private final LabelIndex labels = new LabelIndex();
 
   @Override
-  public Metadata read(Tables.Node row) {
+  public Metadata read(Tables.NodeOrBuilder row) {
     return new Metadata(row.getDisplayName(), row.getLabelsMap(), row.getAnnotationsMap());
   }
 

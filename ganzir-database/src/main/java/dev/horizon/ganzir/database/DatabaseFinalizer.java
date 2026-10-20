@@ -7,11 +7,11 @@ import io.vertx.core.Future;
 
 final class DatabaseFinalizer implements Finalizer {
 
-  private final NodeBackend nodes;
+  private final NodeBackend backend;
   private final Tables.Finalizer row;
 
-  DatabaseFinalizer(NodeBackend nodes, Tables.Finalizer row) {
-    this.nodes = nodes;
+  DatabaseFinalizer(NodeBackend backend, Tables.Finalizer row) {
+    this.backend = backend;
     this.row = row;
   }
 
@@ -22,12 +22,15 @@ final class DatabaseFinalizer implements Finalizer {
 
   @Override
   public Future<Void> remove() {
-    return nodes.database().transaction(transaction -> nodes.lock(row.getNodeId())
-        .compose(node -> nodes.finalizers().delete()
-            .where(Filter.and(Filter.eq("node_id", row.getNodeId()), Filter.eq("name", row.getName())))
-            .execute()
-            .compose(removed -> removed == 0
-                ? Future.<Void> succeededFuture()
-                : nodes.save(node.finalized(node.finalizers().size() > 1), node.revision()).mapEmpty())));
+    return backend.database().transaction(_ -> backend.lock(row.getNodeId()).compose(node -> {
+      if (!node.removeFinalizer(row.getName())) {
+        return Future.succeededFuture();
+      }
+      return backend.finalizers().delete()
+          .where(Filter.and(Filter.eq("node_id", row.getNodeId()), Filter.eq("name", row.getName())))
+          .execute()
+          .compose(_ -> backend.save(node))
+          .mapEmpty();
+    }));
   }
 }

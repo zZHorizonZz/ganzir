@@ -22,7 +22,7 @@ record ModelBackend(Database database) implements Backend<Tables.Model, Long> {
   }
 
   Future<Void> declare(Schema schema, Instant now) {
-    return findAll().orderBy("version desc").first().compose(latest -> {
+    return findAll().orderBy("version desc").mask("version").first().compose(latest -> {
       long version = latest.map(row -> row.getVersion() + 1).orElse(1L);
       return insert(MAPPER.write(Tables.Model.newBuilder()
           .setVersion(version)
