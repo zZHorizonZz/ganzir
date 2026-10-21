@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dev.horizon</groupId>
   <artifactId>ganzir-parent</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Ganzir</name>
   <description>A hierarchy of containers for Vert.x applications, with types and rules that you declare, stored in your
