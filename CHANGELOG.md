@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/zZHorizonZz/ganzir/compare/v0.2.0...v0.3.0) (2026-10-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* Metadata comes from pyrite-common, and the mappers implement Cinder's ProtobufMapper.
+
+### Features
+
+* Metadata comes from pyrite-common, and the mappers implement Cinder's ProtobufMapper. ([a7c7da7](https://github.com/zZHorizonZz/ganzir/commit/a7c7da72667bf6721f560e41683e51ac6bcb674a))
+
 ## [0.2.0](https://github.com/zZHorizonZz/ganzir/compare/v0.1.0...v0.2.0) (2026-10-20)
 
 
