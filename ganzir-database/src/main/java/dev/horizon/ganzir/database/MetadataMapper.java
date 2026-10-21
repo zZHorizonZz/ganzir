@@ -1,7 +1,8 @@
 package dev.horizon.ganzir.database;
 
-import dev.horizon.ganzir.Metadata;
+import dev.horizon.cinder.protobuf.ProtobufMapper;
 import dev.horizon.ganzir.database.schema.v1.Tables;
+import dev.horizon.pyrite.common.Metadata;
 
 final class MetadataMapper implements ProtobufMapper<Metadata, Tables.NodeOrBuilder, Tables.Node.Builder> {
 

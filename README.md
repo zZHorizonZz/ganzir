@@ -161,8 +161,8 @@ Create the tables with the migrations under `ganzir/migration` in the JAR, with 
 | `ganzir-api`      | `dev.horizon.ganzir.api`      | the interfaces of the hierarchy, the model and nodes  |
 | `ganzir-database` | `dev.horizon.ganzir.database` | `DatabaseHierarchy`, and the migrations of its tables |
 
-Failures are the problem exceptions of [Pyrite](https://github.com/zZHorizonZz/pyrite)'s `pyrite-common`, and pages are
-[aquery](https://github.com/zZHorizonZz/aquery)'s.
+`Metadata` and the failures, which are problem exceptions, are [Pyrite](https://github.com/zZHorizonZz/pyrite)'s
+`pyrite-common`, and pages are [aquery](https://github.com/zZHorizonZz/aquery)'s.
 
 ## Prior art
 

@@ -2,6 +2,7 @@ package dev.horizon.ganzir;
 
 import dev.horizon.aquery.aip158.Page;
 import dev.horizon.aquery.aip158.PageRequest;
+import dev.horizon.pyrite.common.Metadata;
 import io.vertx.core.Future;
 
 /**

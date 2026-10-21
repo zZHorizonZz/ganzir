@@ -1,5 +1,6 @@
 package dev.horizon.ganzir.database;
 
+import dev.horizon.cinder.protobuf.ProtobufMapper;
 import dev.horizon.ganzir.Children;
 import dev.horizon.ganzir.Depth;
 import dev.horizon.ganzir.Model;

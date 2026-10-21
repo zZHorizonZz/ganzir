@@ -1,6 +1,5 @@
 package dev.horizon.ganzir.database;
 
-import dev.horizon.ganzir.Metadata;
 import dev.horizon.ganzir.NodeType;
 import dev.horizon.ganzir.Reason;
 import dev.horizon.ganzir.Scope;
@@ -8,6 +7,7 @@ import dev.horizon.ganzir.State;
 import dev.horizon.ganzir.database.schema.v1.Tables;
 import dev.horizon.pyrite.common.AbortedException;
 import dev.horizon.pyrite.common.FailedPreconditionException;
+import dev.horizon.pyrite.common.Metadata;
 import dev.horizon.pyrite.common.Revision;
 import java.time.Instant;
 import java.util.List;

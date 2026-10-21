@@ -1,5 +1,6 @@
 package dev.horizon.ganzir;
 
+import dev.horizon.pyrite.common.Metadata;
 import dev.horizon.pyrite.common.Revision;
 import java.time.Instant;
 import java.util.Optional;
