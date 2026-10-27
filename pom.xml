@@ -42,7 +42,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>25</maven.compiler.release>
     <aquery.version>0.3.1-SNAPSHOT</aquery.version>
-    <cinder.version>0.3.0</cinder.version>
+    <cinder.version>0.4.1</cinder.version>
     <leadseal.version>0.2.0</leadseal.version>
     <protobuf.version>4.36.2</protobuf.version>
     <pyrite.version>0.3.0</pyrite.version>
