@@ -46,7 +46,7 @@
     <leadseal.version>0.2.0</leadseal.version>
     <protobuf.version>4.36.2</protobuf.version>
     <pyrite.version>0.3.0</pyrite.version>
-    <vertx.version>5.2.1</vertx.version>
+    <vertx.version>5.2.2</vertx.version>
 
     <junit.version>6.1.3</junit.version>
     <assertj.version>3.27.7</assertj.version>
